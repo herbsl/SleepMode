@@ -13,10 +13,12 @@ class _SleepMode {
 
         void before(callback_t callback);
         void after(callback_t callback);
-        void powerDown(uint32_t ms, adc_t adc = ADC_OFF, bod_t bod = BOD_OFF);
+        void powerDown(uint32_t sleepTime, adc_t adc = ADC_OFF, bod_t bod = BOD_OFF);
 
     private:
-        period_t getPeriod(uint32_t *ms);
+        period_t getPeriod();
+
+        uint32_t _sleepTime;
 
         callback_t _beforeCallback; 
         callback_t _afterCallback; 

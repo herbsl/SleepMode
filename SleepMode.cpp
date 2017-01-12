@@ -16,21 +16,22 @@ void _SleepMode::after(callback_t callback) {
     _afterCallback = callback;
 }
 
-void _SleepMode::powerDown(uint32_t ms, adc_t adc, bod_t bod) {
+void _SleepMode::powerDown(uint32_t sleepTime, adc_t adc, bod_t bod) {
     period_t period;
 
-    ms = (ms << 10) / 1000;
+    // align sleepTime
+    _sleepTime = (sleepTime << 10) / 1000;
 
     if (_beforeCallback != 0) {
         _beforeCallback();
     }
 
-    if (ms == -1) {
+    if (_sleepTime == -1) {
         LowPower.powerDown(SLEEP_FOREVER, adc, bod);
     }
     else {
-        while (ms > 0) {
-            period = getPeriod(&ms);
+        while (_sleepTime > 0) {
+            period = getPeriod();
             LowPower.powerDown(period, adc, bod);
         }
     }
@@ -40,18 +41,21 @@ void _SleepMode::powerDown(uint32_t ms, adc_t adc, bod_t bod) {
     }
 }
 
-period_t _SleepMode::getPeriod(uint32_t *ms) {
-    uint16_t sleep;
+period_t _SleepMode::getPeriod() {
+    uint16_t periodSleepTime;
 
-    if (*ms <= 16) {
-        *ms = 0;
+    if (_sleepTime <= 16) {
+        _sleepTime = 0;
+
         return SLEEP_15MS;
     }
 
     for (uint8_t i = 9; i >= 0; --i) {
-        if (*ms >= sleep) {
-            *ms -= sleep;
+        periodSleepTime = 16 << i;
 
+        if (_sleepTime >= periodSleepTime) {
+            _sleepTime -= periodSleepTime;
+          
             return (period_t)i;
         }
      }
